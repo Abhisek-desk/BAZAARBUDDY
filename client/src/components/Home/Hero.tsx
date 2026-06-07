@@ -1,4 +1,4 @@
-import { ArrowRightIcon, LeafIcon, Link } from "lucide-react"
+import { ArrowRightIcon, LeafIcon } from "lucide-react"
 import { heroSectionData } from "../../assets/assets"
 
 

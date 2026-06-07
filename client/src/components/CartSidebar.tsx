@@ -26,7 +26,7 @@ const CartSidebar = () => {
 
   if (!isCartOpen) return null;
 
-  const deliveryFee = cartTotal > 20 ? 5 : 1.99;
+  const deliveryFee = cartTotal > 20 ? 0 : 1.99;
   const grandTotal = cartTotal + deliveryFee;
 
   return (
@@ -138,7 +138,7 @@ const CartSidebar = () => {
               <span className="text-app-text-light">Delivery Fee</span>
               <span className="font-medium">
                 {currency}
-                {deliveryFee === 0 ? (
+                {deliveryFee == 0 ? (
                   <span className="text-app-success">Free</span>
                 ) : (
                   `${currency}${deliveryFee.toFixed(2)}`

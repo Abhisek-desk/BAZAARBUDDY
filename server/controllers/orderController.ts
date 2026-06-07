@@ -89,7 +89,7 @@ export const createOrder = async (req: Request, res: Response) => {
       line_items: [
         {
           price_data: {
-            currency:"rupees",
+            currency:"inr",
             product_data:{
               name:"Payment Groceries"
             },

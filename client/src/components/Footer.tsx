@@ -1,4 +1,4 @@
-import { Bike, Icon } from "lucide-react";
+import { Bike } from "lucide-react";
 import { Link } from "react-router-dom";
 import { footerData } from "../assets/assets";
 
