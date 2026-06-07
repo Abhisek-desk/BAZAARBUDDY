@@ -57,7 +57,7 @@ export const updateDeliveryPartner=async(req:Request,res:Response)=>{
     if(name) data.name=name;
     if(phone) data.phone=phone;
     if(vehicleType) data.vehicleType=vehicleType;
-    if(isActive) data.isActive=isActive;
+    data.isActive=isActive;
 
     try {
         const partner=await prisma.deliveryPartner.update({
@@ -72,7 +72,6 @@ export const updateDeliveryPartner=async(req:Request,res:Response)=>{
 }
 
 //assign delivery partner for order 
-
 export const assignDeliveryPartner=async(req:Request,res:Response)=>{
     const {partnerId}=req.body;
     const order=await prisma.order.findUnique({

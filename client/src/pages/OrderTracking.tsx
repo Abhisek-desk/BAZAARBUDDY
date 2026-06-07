@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { Order } from "../types";
-import { dummyDashboardOrdersData } from "../assets/assets";
 import Loading from "../components/Loading";
-import { ArrowLeftIcon, MapPinIcon, PhoneIcon, Shield } from "lucide-react";
+import { ArrowLeftIcon, MapPinIcon, PhoneIcon } from "lucide-react";
 import OrderOTP from "../components/OrderTracking/OrderOTP";
 import LiveMap from "../components/OrderTracking/LiveMap";
 import OrderTimeLine from "../components/OrderTracking/OrderTimeLine";
+import api from "../config/api";
 
 export const OrderTracking = () => {
-  const currency=import.meta.env.VITE_CURRENCY_SYMBOL || '₹';
+  const currency = import.meta.env.VITE_CURRENCY_SYMBOL || "₹";
   const { id } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState<Order | null>(null);
@@ -20,9 +20,40 @@ export const OrderTracking = () => {
   } | null>(null);
 
   useEffect(() => {
-    setOrder(dummyDashboardOrdersData.find((o) => o._id === id) as any);
-    setLoading(false);
+    api
+      .get(`/orders/${id}`)
+      .then((res) => setOrder(res.data.order))
+      .catch(() => navigate("/orders"))
+      .finally(() => setLoading(false));
   }, [id, navigate]);
+
+  //live location every 10 seconds
+  useEffect(()=>{
+    if(!order || ["Delivered","Cancelled" ,"Placed"].includes(order.status)) return;
+
+    const fetchLoaction=async()=>{
+      try {
+        const {data}=await api.get(`/orders/${id}/location`)
+
+        if(data.livelocation?.lat && data.livelocation?.lng && data.livelocation?.updatedAt){
+          setLiveLocation({
+            lat:data.livelocation.lat,
+            lng:data.livelocation.lng
+          })
+        }
+
+        //Also update order status if it changed
+        if(data.status && data.status !== order.status){
+          setOrder((prev)=>prev ? {...prev,status:data.status} : prev)
+        }
+      } catch {
+        
+      }
+    }
+    fetchLoaction()
+    const interval=setInterval(fetchLoaction,10000)
+    return ()=>clearInterval(interval)
+  },[id,order?.status])
 
   if (loading) return <Loading />;
   if (!order) return null;
@@ -42,7 +73,7 @@ export const OrderTracking = () => {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-semibold text-app-green">
-              Order #{order!._id.slice(-8).toUpperCase()}
+              Order #{order!.id.slice(-8).toUpperCase()}
             </h1>
             <p className="text-sm text-app-text-light mt-1">
               Placed On{" "}
@@ -120,33 +151,57 @@ export const OrderTracking = () => {
                 Items({order?.items.length})
               </h3>
               <div className="space-y-3">
-                {order?.items.map((item,i)=>(
+                {order?.items.map((item, i) => (
                   <div key={i} className="flex items-center gap-3">
-                    <img src={item.image} alt={item.name} className="size-10 rounded-lg object-cover"/>
+                    <img
+                      src={item.Image}
+                      alt={item.name}
+                      className="size-10 rounded-lg object-cover"
+                    />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-app-green truncate">{item.name}</p>
-                      <p className="text-xs text-app-text-light">x{item.quantity}</p>
+                      <p className="text-sm font-medium text-app-green truncate">
+                        {item.name}
+                      </p>
+                      <p className="text-xs text-app-text-light">
+                        x{item.quantity}
+                      </p>
                     </div>
-                    <span className="text-sm font-semibold">{currency}{(item.price * item.quantity).toFixed(2)}</span>
+                    <span className="text-sm font-semibold">
+                      {currency}
+                      {(item.price * item.quantity).toFixed(2)}
+                    </span>
                   </div>
                 ))}
               </div>
               <div className="mt-4 pt-3 border-t border-app-border space-y-1.5 text-sm">
                 <div className="flex justify-between">
                   <span className="text-app-text-light">Subtotal</span>
-                  <span>{currency}{order.subtotal.toFixed(2)}</span>
+                  <span>
+                    {currency}
+                    {order.subtotal.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-app-text-light">Delivery</span>
-                  <span>{order.deliveryFee === 0 ? "Free" : `${currency}${order.deliveryFee.toFixed(2)}`}</span>
+                  <span>
+                    {order.deliveryFee === 0
+                      ? "Free"
+                      : `${currency}${order.deliveryFee.toFixed(2)}`}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-app-text-light">Tax</span>
-                  <span>{currency}{order.tax.toFixed(2)}</span>
+                  <span>
+                    {currency}
+                    {order.tax.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between pt-2 border-t border-app-border font-semibold text-app-green">
                   <span className="text-app-text-light">Total</span>
-                  <span>{currency}{order.total.toFixed(2)}</span>
+                  <span>
+                    {currency}
+                    {order.total.toFixed(2)}
+                  </span>
                 </div>
               </div>
             </div>

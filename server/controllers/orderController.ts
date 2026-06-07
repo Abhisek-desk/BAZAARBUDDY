@@ -5,6 +5,8 @@ import { error, timeStamp } from "node:console";
 import { stat } from "node:fs";
 import { off } from "node:cluster";
 import { inngest } from "../inngest/index.js";
+import Stripe from "stripe";
+import { url } from "node:inspector";
 
 //Crete order
 //Post /api/order
@@ -25,7 +27,7 @@ export const createOrder = async (req: Request, res: Response) => {
 
   const productMap: Record<string, (typeof products)[0]> = {};
 
-  products.forEach((p: any) => productMap[p.id] == p);
+  products.forEach((p: any) => (productMap[p.id] = p));
 
   //check if th product is in stock
   for (const item of items) {
@@ -36,7 +38,7 @@ export const createOrder = async (req: Request, res: Response) => {
   }
 
   const orderItems = items.map((item: any) => {
-    const dbProduct = productMap[items.product];
+    const dbProduct = productMap[item.product];
     if (!dbProduct) throw new Error(`Product ${item.product} not found`);
     return {
       product: dbProduct.id,
@@ -78,6 +80,28 @@ export const createOrder = async (req: Request, res: Response) => {
 
   if (paymentMethod === "card") {
     //stripe payment link
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string)
+
+    //create session
+    const session = await stripe.checkout.sessions.create({
+      success_url: `${req.headers.origin}/orders?clearCart=true`,
+      cancel_url: `${req.headers.origin}/checkout`,
+      line_items: [
+        {
+          price_data: {
+            currency:"rupees",
+            product_data:{
+              name:"Payment Groceries"
+            },
+            unit_amount:Math.round(total*100)
+          },
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      metadata:{orderId:order.id}
+    });
+    return res.json({url:session.url})
   }
   res.json({ order });
 
@@ -89,14 +113,15 @@ export const createOrder = async (req: Request, res: Response) => {
     });
   }
 
-  //Semd stock update events for each product in the cart
-  for(const item of orderItems){
-    await inngest.send({name:"inventory/stock.updated",data:{productId:item.product}})
+  //Send stock update events for each product in the order
+  for (const item of orderItems) {
+    await inngest.send({
+      name: "inventory/stock.updated",
+      data: { productId: item.product },
+    });
   }
 
-  await inngest.send({name:"orders/placed",data:{orderId:order.id}})
-  
-
+  await inngest.send({ name: "orders/placed", data: { orderId: order.id } });
 };
 
 //Get users's ordeers
@@ -190,5 +215,5 @@ export const getOrderLocation = async (req: Request, res: Response) => {
   });
 
   if (!order) return res.status(404).json({ message: "Order not found" });
-  res.json({livelocation:order.liveLocation,status:order.status})
+  res.json({ livelocation: order.liveLocation, status: order.status });
 };

@@ -15,25 +15,25 @@ const ProductCard = ({ product }: Props) => {
   return (
     <div
       className="bg-white rounded-2xl overflow-hidden shadow hover:shadow-md transition-all duration-300 group animate-fade-in cursor-pointer"
-      onClick={() => navigate(`/products/${product._id}`)}
+      onClick={() => navigate(`/products/${product.id}`)}
     >
       {/* image */}
-      <div className="relative aspect-square overflow-hidden">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full h-full object-cover p-4 group-hover:p-2 transition-all duration-300"
-        />
+<div className="relative aspect-square overflow-hidden">
+  <img
+    src={product.image}
+    alt={product.name}
+    className="w-full h-full object-cover p-4 group-hover:p-2 transition-all duration-300"
+  />
 
-        {/* Badges */}
-        <div>
-          {product.discount > 0 && (
-            <span className="px-2 py-0.5 text-[10px] font-semibold uppercase bg-app-orange text-white rounded-full">
-              {product.discount}%OFF
-            </span>
-          )}
-        </div>
-      </div>
+  {/* Badges */}
+  <div className="absolute top-2 left-2 z-10">
+    {product.discount > 0 && (
+      <span className="px-2 py-0.5 text-[10px] font-semibold uppercase bg-app-orange text-white rounded-full">
+        {product.discount}% OFF
+      </span>
+    )}
+  </div>
+</div>
       {/* Info */}
       <div className="p-3.5 text-zinc-700">
         <h3 className="text-sm leading-snug mb-1.5 line-clamp-2">

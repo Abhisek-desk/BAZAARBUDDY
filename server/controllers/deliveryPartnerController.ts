@@ -91,30 +91,53 @@ export const getDeliveryDetail = async (req: Request, res: Response) => {
 //Complete delivery with otp
 //PUT /api/delivey/my-deliveries/:id/complete
 export const completeDelivery = async (req: Request, res: Response) => {
-    const {otp}=req.body;
+    try {
+        const { otp } = req.body;
 
-    const order=await prisma.order.findFirst({
-        where:{id:req.params.id as string, deliveryPartnerId: req.partner!.id },
-    })
+        const order = await prisma.order.findFirst({
+            where: {
+                id: req.params.id as string,
+                deliveryPartnerId: req.partner!.id,
+            },
+        });
 
-    if(!order || order.status==="Cancelled" || order.status==="Delivered"){
-        return res.status(400).json({message:"Invalid request"})
+        if (!order || order.status === "Cancelled" || order.status === "Delivered") {
+            return res.status(400).json({ message: "Invalid request" });
+        }
+
+        if (order.deliveryOtp !== otp) {
+            return res.status(400).json({ message: "Invalid OTP" });
+        }
+
+        const history = Array.isArray(order.statusHistory)
+            ? order.statusHistory
+            : [];
+
+        history.push({
+            status: "Delivered",
+            note: "Delivered by partner",
+            timeStamp: new Date().toISOString(),
+        });
+
+        const updatedOrder = await prisma.order.update({
+            where: { id: order.id },
+            data: {
+                status: "Delivered",
+                statusHistory: history,
+                deliveryOtp: "",
+            },
+        });
+
+        return res.json({
+            order: updatedOrder,
+            message: "Delivery completed successfully",
+        });
+
+    } catch (err: any) {
+        console.error("COMPLETE DELIVERY ERROR:", err);
+        return res.status(500).json({ message: err.message });
     }
-
-    if(order.deliveryOtp!=="otp"){
-        return res.status(500).json({messgae:"Invalid OTP"})
-    }
-
-    const history=order!.statusHistory as any[];
-    history.push({status:"Delivered",note:"Delivered by partner",timeStamp:new Date()})
-
-    const updatedOrder=await prisma.order.update({
-        where:{id:order!.id},
-        data:{status:"Delivered",statusHistory:history,deliveryOtp:""}
-    })
-
-    res.json({order:updatedOrder,message:"Delivery completed successfully"})
-}
+};
 
 //Cancel Delivery
 //PUT /api/delivey/my-deliveries/:id/cancel

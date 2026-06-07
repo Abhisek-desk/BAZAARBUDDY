@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import type { Product } from "../types";
-import { categoriesData, dummyProducts } from "../assets/assets";
+import { categoriesData } from "../assets/assets";
 import { ChevronDown, HomeIcon, SlidersHorizontal, XIcon } from "lucide-react";
 import ProductCard from "../components/ProductCard";
 import Loading from "../components/Loading";
 import FilterPanel from "../components/FilterPanel";
+import api from "../config/api";
+import toast from "react-hot-toast";
 
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -23,9 +25,24 @@ const Products = () => {
 
   const fetchProducts = async () => {
     setLoading(true);
-    setProducts(
-      dummyProducts.filter((p) => p.category === category || category === ""),
-    );
+    try {
+      const params: any = new URLSearchParams();
+      if (category) params.set("category", category);
+      if (organic) params.set("organic", organic);
+      if (sort) params.set("sort", sort);
+      if (minPrice) params.set("minPrice", minPrice);
+      if (maxPrice) params.set("maxPrice", maxPrice);
+      params.set("page", String(page));
+
+      const { data } = await api.get(`/products?${params.toString()}`);
+      setProducts(data.products);
+      setTotalPages(data.pages);
+      params.set("limit", 12);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || error?.message);
+    } finally {
+      setLoading(false);
+    }
     setLoading(false);
   };
 
@@ -141,7 +158,7 @@ const Products = () => {
                 {products.map(
                   (product) =>
                     product.stock > 0 && (
-                      <ProductCard key={product._id} product={product} />
+                      <ProductCard key={product.id} product={product} />
                     ),
                 )}
               </div>
@@ -169,13 +186,18 @@ const Products = () => {
       {/* Mobile Filters Model */}
       {mobileFilterOpen && (
         <>
-        <div className="fixed inset-0 bg-black/40 z-50" onClick={()=> setMobileFilterOpen(false)}></div>
-          <div className="fixed bottom -0 left-0 right-0 bg-white z-50 rounded-t-2xl max-h-[80vh] overflow-y-auto animate-slide-in-up">
+          <div
+            className="fixed inset-0 bg-black/40 z-50"
+            onClick={() => setMobileFilterOpen(false)}
+          ></div>
+          <div className="fixed bottom-0 left-0 right-0 bg-white z-50 rounded-t-2xl max-h-[80vh] overflow-y-auto animate-slide-in-up">
             <div className="flex items-center justify-center p-4 border-b border-app-border">
               <h3 className="text-lg font-semibold text-app-green">Filters</h3>
-              <button onClick={()=>setMobileFilterOpen(false)} 
-              className="p-2 hover:bg-app-cream rounded-lg">
-                <XIcon className="size-5"/>
+              <button
+                className="p-2 hover:bg-app-cream rounded-lg"
+                onClick={() => setMobileFilterOpen(false)}
+              >
+                <XIcon className="size-5" />
               </button>
             </div>
             <div className="p-4">
