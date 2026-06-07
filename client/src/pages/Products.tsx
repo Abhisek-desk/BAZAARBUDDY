@@ -59,6 +59,15 @@ const Products = () => {
     setSearchParams(newParams);
   };
 
+  const updateMobileFilter = (key: string, value: string) => {
+  updateFilter(key, value);
+
+  // Close mobile filter drawer
+  if (window.innerWidth < 1024) {
+    setMobileFilterOpen(false);
+  }
+};
+
   const clearFilters = () => setSearchParams({});
 
   const activeCategory = categoriesData.find((c) => c.slug === category);
@@ -128,10 +137,10 @@ const Products = () => {
                     className="appearance-none pl-3 pr-8 py-2 text-sm bg-white rounded-xl border border-app-border focus:border-app-green outline-none cursor-pointer"
                   >
                     <option value="">Newest</option>
-                    <option value="price_asc">Price : Low ➡️ High</option>
-                    <option value="price_desc">Price : High ➡️ Low</option>
+                    <option value="price_asc">Price: Low → High</option>
+                    <option value="price_desc">Price: High → Low</option>
                     <option value="rating">Top Rrated</option>
-                    <option value="name">A➡️Z</option>
+                    <option value="name">A → Z</option>
                   </select>
                   <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-app-text-light pointer-events-none" />
                 </div>
@@ -191,14 +200,19 @@ const Products = () => {
             onClick={() => setMobileFilterOpen(false)}
           ></div>
           <div className="fixed bottom-0 left-0 right-0 bg-white z-50 rounded-t-2xl max-h-[80vh] overflow-y-auto animate-slide-in-up">
-            <div className="flex items-center justify-center p-4 border-b border-app-border">
-              <h3 className="text-lg font-semibold text-app-green">Filters</h3>
-              <button
-                className="p-2 hover:bg-app-cream rounded-lg"
-                onClick={() => setMobileFilterOpen(false)}
-              >
-                <XIcon className="size-5" />
-              </button>
+            <div className="px-4">
+              <div className="flex items-center justify-between h-14 border-b border-app-border">
+                <h3 className="text-lg font-semibold text-app-green">
+                  Filters
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setMobileFilterOpen(false)}
+                  className="flex items-center justify-center w-8 h-8"
+                >
+                  <XIcon className="w-5 h-5" />
+                </button>
+              </div>
             </div>
             <div className="p-4">
               <FilterPanel
@@ -207,7 +221,7 @@ const Products = () => {
                 organic={organic}
                 minPrice={minPrice}
                 maxPrice={maxPrice}
-                updateFilter={updateFilter}
+                updateFilter={updateMobileFilter}
                 clearFilter={clearFilters}
                 hasFilters={hasFilters}
               />

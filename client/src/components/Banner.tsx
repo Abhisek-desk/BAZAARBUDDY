@@ -16,8 +16,9 @@ const Banner = () => {
       {bannerVisible && (
         <div className="bg-linear-to-r from-app-green via-emerald-800 to-app-green text-white text-sm sm:text-sm relative overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex-center gap-6">
+            <TruckIcon className="flex-center gap-2"/>
             <div>
-                <TruckIcon className="flex-center gap-2"/>
+                
                 <span>Free delivery on orders above $20</span>
             </div>
             <span className="hidden sm:inline text-white/40"> </span>
