@@ -207,7 +207,6 @@ Through this project, I gained practical experience in:
 
     ABHISEK MISHRA🤗
 
-- LinkedIn: https://www.linkedin.com/in/abhisek-mishra-61b080355
-
+- LinkedIn: https://www.linkedin.com/in/abhisek-mishra-31
 
 - GitHub: https://github.com/Abhisek-desk
